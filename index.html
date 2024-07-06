@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Map with Nepal Province</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map { height: 600px; }
+        .custom-div-icon {
+            background-color: transparent;
+            border: none;
+        }
+        .custom-div-icon div {
+            border-radius: 3px;
+            padding: 5px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            color: rgba(0, 0, 0, 0.7); /* Semi-transparent text color */
+            background: none; /* Remove background */
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script>
+        // Initialize the map and set its view to Nepal
+        var map = L.map('map').setView([28.3949, 84.1240], 7); // Center of Nepal
+
+        // Add a base layer
+        L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.{ext}', {
+	minZoom: 0,
+	maxZoom: 20,
+	attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	ext: 'png'
+}).addTo(map);
+
+        // Load GeoJSON data for Nepal's districts (replace 'nepal_districts.geojson' with your file path)
+        fetch('nepal_districts.geojson')
+            .then(response => response.json())
+            .then(data => {
+                // Add GeoJSON layer to the map
+                var geojsonLayer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return { color: '#9A1D20', weight: 0.9, fillOpacity: 0 }; // Customize the style to remove fill
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.bindPopup('District: ' + feature.properties.name); // Customize popup
+                    }
+                }).addTo(map);
+
+                // Fit map to the GeoJSON layer
+                map.fitBounds(geojsonLayer.getBounds());
+            })
+            .catch(error => console.error('Error loading GeoJSON data:', error));
+
+        L.Control.geocoder().addTo(map);
+
+        var provinces = [
+            {name: "Province 1", coords: [27.5330, 87.2931]},
+            {name: "Province 2", coords: [26.7789, 86.0980]},
+            {name: "Bagmati Province", coords: [27.6172, 85.6240]},
+            {name: "Gandaki Province", coords: [28.5096, 83.9856]},
+            {name: "Lumbini Province", coords: [27.9083, 82.7653]},
+            {name: "Karnali Province", coords: [29.075375179558346, 82.39701185836428]},
+            {name: "Sudurpashchim Province", coords: [29.6743, 80.9645]}
+        ];
+
+        provinces.forEach(function(province) {
+            var myIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: "<div>" + province.name + "</div>",
+                iconSize: [120, 30],
+                iconAnchor: [60, 15]
+            });
+
+            L.marker(province.coords, {icon: myIcon}).addTo(map);
+        });
+    </script>
+</body>
+</html>
